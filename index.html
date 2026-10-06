@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DASHBOARD SINTELIS DAOP 2 BANDUNG</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="CSS/style.css" />
+
+    <!-- Config & Utilities -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/app.js" defer></script>
+  </head>
+  <body class="bg-gray-100 text-gray-800 flex flex-col min-h-screen">
+    <!-- Top Header Bar -->
+    <header class="bg-kai-blue text-white shadow-md">
+      <div
+        class="px-4 py-3 flex flex-wrap justify-between items-center border-b border-blue-900"
+      >
+        <!-- Logo & Title -->
+        <div class="flex items-center space-x-3">
+          <div
+            class="bg-white p-1.5 rounded-lg shadow-sm flex items-center justify-center"
+          >
+            <span
+              class="text-kai-blue font-black tracking-tighter text-2xl italic leading-none"
+              >KAI</span
+            >
+          </div>
+          <div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-wide uppercase">
+              DASHBOARD SINTELIS DAOP 2 BANDUNG
+            </h1>
+            <p class="text-xs text-orange-300 font-medium tracking-wider">
+              Sistem Informasi Sinyal, Telekomunikasi & Kelistrikan
+            </p>
+          </div>
+        </div>
+
+        <!-- Clock & Global Actions -->
+        <div class="flex items-center space-x-4 mt-2 sm:mt-0">
+          <div
+            class="bg-kai-darkblue px-3 py-1.5 rounded-md border border-blue-800 text-xs font-mono text-yellow-400 flex items-center gap-2 shadow-inner"
+          >
+            <i data-lucide="clock" class="w-4 h-4 text-orange-400"></i>
+            <span id="realtimeClock">Loading...</span>
+          </div>
+          <button
+            onclick="exportDataJSON()"
+            class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded flex items-center gap-1 transition shadow"
+          >
+            <i data-lucide="download" class="w-3.5 h-3.5"></i> Export
+          </button>
+          <label
+            class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1.5 rounded flex items-center gap-1 cursor-pointer transition shadow"
+          >
+            <i data-lucide="upload" class="w-3.5 h-3.5"></i> Import
+            <input
+              type="file"
+              id="importFileInput"
+              onchange="importDataJSON(event)"
+              class="hidden"
+              accept=".json"
+            />
+          </label>
+          <button
+            onclick="resetToDefaultData()"
+            class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-2.5 py-1.5 rounded flex items-center gap-1 transition shadow"
+            title="Reset Data Demo"
+          >
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Banner Misi Running Text -->
+      <div
+        class="bg-gradient-to-r from-yellow-500 via-kai-orange to-kai-blue text-white py-1.5 px-4 text-xs font-semibold flex items-center shadow-inner"
+      >
+        <span
+          class="bg-kai-blue text-yellow-300 px-2 py-0.5 rounded text-[10px] uppercase font-bold mr-3 shrink-0 flex items-center gap-1"
+        >
+          <i data-lucide="flag" class="w-3 h-3"></i> MISI KAI
+        </span>
+        <div class="marquee-container w-full">
+          <div class="marquee-content">
+            1. Menyediakan jasa transportasi yang mengedepankan ketepatan waktu,
+            keselamatan, dan kenyamanan. &nbsp;&nbsp;&nbsp;●&nbsp;&nbsp;&nbsp;
+            2. Mengembangkan sumber daya dan teknologi dengan mengedepankan ESG
+            (Environmental, Social, and Governance).
+            &nbsp;&nbsp;&nbsp;●&nbsp;&nbsp;&nbsp; 3. Berperan aktif dalam
+            pengembangan transportasi antarmoda berkelanjutan bersama pemangku
+            kepentingan.
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <div class="flex-grow flex flex-col md:flex-row overflow-hidden">
+      <!-- Sidebar Navigation -->
+      <aside
+        class="w-full md:w-64 bg-kai-blue text-slate-200 flex-shrink-0 flex flex-col border-r border-blue-900 shadow-xl"
+      >
+        <div class="p-3 border-b border-blue-800/60">
+          <p
+            class="text-[11px] font-semibold text-blue-300 uppercase tracking-wider mb-2 px-2"
+          >
+            Menu Utama
+          </p>
+          <nav class="space-y-1">
+            <button
+              onclick="switchTab('overview')"
+              id="tab-overview"
+              class="tab-btn active w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition hover:bg-blue-800"
+            >
+              <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+              <span>Dashboard Overview</span>
+            </button>
+            <button
+              onclick="switchTab('pegawai')"
+              id="tab-pegawai"
+              class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition hover:bg-blue-800"
+            >
+              <i data-lucide="users" class="w-4 h-4"></i>
+              <span>Data Pegawai</span>
+            </button>
+            <button
+              onclick="switchTab('aset')"
+              id="tab-aset"
+              class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition hover:bg-blue-800"
+            >
+              <i data-lucide="box" class="w-4 h-4"></i>
+              <span>Data Aset & Suku Cadang</span>
+            </button>
+            <button
+              onclick="switchTab('perawatan')"
+              id="tab-perawatan"
+              class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition hover:bg-blue-800"
+            >
+              <i data-lucide="wrench" class="w-4 h-4"></i>
+              <span>Data Perawatan</span>
+            </button>
+            <button
+              onclick="switchTab('gangguan')"
+              id="tab-gangguan"
+              class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition hover:bg-blue-800"
+            >
+              <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+              <span>Data Gangguan</span>
+            </button>
+            <button
+              onclick="switchTab('rkad')"
+              id="tab-rkad"
+              class="tab-btn w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition hover:bg-blue-800"
+            >
+              <i data-lucide="pie-chart" class="w-4 h-4"></i>
+              <span>Realisasi RKAD</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Resor Filter Accordion Section -->
+        <div class="p-3 flex-1 overflow-y-auto">
+          <div class="flex justify-between items-center mb-2 px-2">
+            <p
+              class="text-[11px] font-semibold text-blue-300 uppercase tracking-wider"
+            >
+              UPT RESOR SINTELIS
+            </p>
+            <span
+              id="activeResorBadge"
+              class="bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded font-mono"
+              >Semua</span
+            >
+          </div>
+          <div class="space-y-1 text-xs">
+            <button
+              onclick="filterByResor('ALL')"
+              id="resor-ALL"
+              class="resor-btn active w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>Semua Wilayah DAOP 2</span>
+              <i data-lucide="chevron-right" class="w-3 h-3 text-gray-400"></i>
+            </button>
+            <button
+              onclick="filterByResor('STL 2.1 Purwakarta')"
+              id="resor-STL 2.1 Purwakarta"
+              class="resor-btn w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>1. RESOR STL 2.1 PURWAKARTA</span>
+            </button>
+            <button
+              onclick="filterByResor('STL 2.2 Rendeh')"
+              id="resor-STL 2.2 Rendeh"
+              class="resor-btn w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>2. RESOR STL 2.2 RENDEH</span>
+            </button>
+            <button
+              onclick="filterByResor('STL 2.3 Cianjur')"
+              id="resor-STL 2.3 Cianjur"
+              class="resor-btn w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>3. RESOR STL 2.3 CIANJUR</span>
+            </button>
+            <button
+              onclick="filterByResor('STL 2.4 Cimahi')"
+              id="resor-STL 2.4 Cimahi"
+              class="resor-btn w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>4. RESOR STL 2.4 CIMAHI</span>
+            </button>
+            <button
+              onclick="filterByResor('STL 2.5 Bandung')"
+              id="resor-STL 2.5 Bandung"
+              class="resor-btn w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>5. RESOR STL 2.5 BANDUNG</span>
+            </button>
+            <button
+              onclick="filterByResor('STL 2.6 Kiaracondong')"
+              id="resor-STL 2.6 Kiaracondong"
+              class="resor-btn w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>6. RESOR STL 2.6 KIARACONDONG</span>
+            </button>
+            <button
+              onclick="filterByResor('STL 2.7 Nagreg')"
+              id="resor-STL 2.7 Nagreg"
+              class="resor-btn w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>7. RESOR STL 2.7 NAGREG</span>
+            </button>
+            <button
+              onclick="filterByResor('STL 2.8 Cibatu')"
+              id="resor-STL 2.8 Cibatu"
+              class="resor-btn w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>8. RESOR STL 2.8 CIBATU</span>
+            </button>
+            <button
+              onclick="filterByResor('STL 2.9 Tasikmalaya')"
+              id="resor-STL 2.9 Tasikmalaya"
+              class="resor-btn w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>9. RESOR STL 2.9 TASIKMALAYA</span>
+            </button>
+            <button
+              onclick="filterByResor('STL 2.10 Banjar')"
+              id="resor-STL 2.10 Banjar"
+              class="resor-btn w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>10. RESOR STL 2.10 BANJAR</span>
+            </button>
+            <button
+              onclick="filterByResor('Workshop STL Bandung')"
+              id="resor-Workshop STL Bandung"
+              class="resor-btn w-full text-left px-3 py-1.5 rounded hover:bg-blue-800/60 transition flex justify-between items-center"
+            >
+              <span>11. WORKSHOP STL BANDUNG</span>
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="p-3 bg-kai-darkblue text-[10px] text-blue-300 border-t border-blue-900 text-center"
+        >
+          Sintelis DAOP 2 Bandung &copy; 2026
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="flex-1 p-4 md:p-6 overflow-y-auto space-y-6">
+        <!-- Filter Status Notification Bar -->
+        <div
+          id="filterNotificationBar"
+          class="hidden bg-orange-100 border-l-4 border-orange-500 text-orange-800 p-3 rounded-r text-sm flex justify-between items-center shadow-sm"
+        >
+          <div class="flex items-center gap-2">
+            <i data-lucide="filter" class="w-4 h-4 text-orange-600"></i>
+            <span
+              >Menampilkan Data Khusus Resor:
+              <strong id="filterResorName">--</strong></span
+            >
+          </div>
+          <button
+            onclick="filterByResor('ALL')"
+            class="text-xs bg-orange-200 hover:bg-orange-300 px-2 py-1 rounded text-orange-900 font-semibold transition"
+          >
+            Tampilkan Semua
+          </button>
+        </div>
+
+        <!-- TAB 1: OVERVIEW DASHBOARD -->
+        <div id="view-overview" class="space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Card 1: Pegawai -->
+            <div
+              class="bg-white rounded-xl shadow-md border border-gray-200 p-4 relative overflow-hidden flex flex-col justify-between hover:shadow-lg transition"
+            >
+              <div
+                class="bg-gradient-to-r from-amber-500 to-kai-orange text-white text-xs font-bold px-3 py-1 rounded-t-md -mt-4 -mx-4 mb-3 flex justify-between items-center"
+              >
+                <span>PEGAWAI SINTELIS</span>
+                <i data-lucide="users" class="w-4 h-4"></i>
+              </div>
+              <div class="space-y-2">
+                <div
+                  class="bg-blue-600 text-white rounded-lg p-2.5 text-center shadow-sm"
+                >
+                  <span class="text-xs uppercase font-medium opacity-80 block"
+                    >TOTAL PEGAWAI</span
+                  >
+                  <span id="stat-total-pegawai" class="text-2xl font-extrabold"
+                    >0</span
+                  >
+                </div>
+                <div class="grid grid-cols-3 gap-1 text-center text-xs">
+                  <div class="bg-sky-50 p-1.5 rounded border border-sky-100">
+                    <span class="text-[10px] text-gray-500 block"
+                      >SMARTCARD</span
+                    >
+                    <span id="stat-smartcard" class="font-bold text-sky-700"
+                      >0</span
+                    >
+                  </div>
+                  <div
+                    class="bg-emerald-50 p-1.5 rounded border border-emerald-100"
+                  >
+                    <span class="text-[10px] text-gray-500 block"
+                      >BEBAS TUGAS</span
+                    >
+                    <span
+                      id="stat-bebas-tugas"
+                      class="font-bold text-emerald-700"
+                      >0</span
+                    >
+                  </div>
+                  <div class="bg-rose-50 p-1.5 rounded border border-rose-100">
+                    <span class="text-[10px] text-gray-500 block"
+                      >BELUM CERT</span
+                    >
+                    <span
+                      id="stat-belum-sertifikasi"
+                      class="font-bold text-rose-700"
+                      >0</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: RKAD -->
+            <div
+              class="bg-white rounded-xl shadow-md border border-gray-200 p-4 relative flex flex-col justify-between hover:shadow-lg transition"
+            >
+              <div
+                class="bg-gradient-to-r from-amber-500 to-kai-orange text-white text-xs font-bold px-3 py-1 rounded-t-md -mt-4 -mx-4 mb-3 flex justify-between items-center"
+              >
+                <span>REALISASI RKAD 2025/2026</span>
+                <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+              </div>
+              <div
+                class="flex-grow flex flex-col justify-center items-center my-1 text-center"
+              >
+                <span class="text-xs text-gray-500 font-medium"
+                  >Realisasi Anggaran Program</span
+                >
+                <span
+                  id="stat-rkad-percent"
+                  class="text-3xl font-extrabold text-kai-blue my-1"
+                  >0%</span
+                >
+                <div class="w-full bg-gray-200 rounded-full h-2.5 my-1">
+                  <div
+                    id="stat-rkad-bar"
+                    class="bg-emerald-500 h-2.5 rounded-full transition-all duration-500"
+                    style="width: 0%"
+                  ></div>
+                </div>
+                <span
+                  id="stat-rkad-nominal"
+                  class="text-xs font-semibold text-emerald-600"
+                  >Rp 0 / Rp 0</span
+                >
+              </div>
+            </div>
+
+            <!-- Card 3: Persediaan -->
+            <div
+              class="bg-white rounded-xl shadow-md border border-gray-200 p-4 relative flex flex-col justify-between hover:shadow-lg transition"
+            >
+              <div
+                class="bg-gradient-to-r from-amber-500 to-kai-orange text-white text-xs font-bold px-3 py-1 rounded-t-md -mt-4 -mx-4 mb-3 flex justify-between items-center"
+              >
+                <span>PERSEDIAAN SUKU CADANG</span>
+                <i data-lucide="box" class="w-4 h-4"></i>
+              </div>
+              <div
+                class="flex-grow flex flex-col justify-center items-center my-1 text-center"
+              >
+                <span class="text-xs text-gray-500 font-medium"
+                  >Estimasi Value Stok</span
+                >
+                <span
+                  id="stat-aset-value"
+                  class="text-2xl font-extrabold text-amber-600 my-1"
+                  >Rp 0</span
+                >
+                <span
+                  id="stat-aset-count"
+                  class="text-xs text-gray-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200"
+                  >0 Item Aset Terdaftar</span
+                >
+              </div>
+            </div>
+
+            <!-- Card 4: Summary Maintenance -->
+            <div
+              class="bg-white rounded-xl shadow-md border border-gray-200 p-4 relative flex flex-col justify-between hover:shadow-lg transition"
+            >
+              <div
+                class="bg-gradient-to-r from-amber-500 to-kai-orange text-white text-xs font-bold px-3 py-1 rounded-t-md -mt-4 -mx-4 mb-3 flex justify-between items-center"
+              >
+                <span>SUMMARY MAINTENANCE</span>
+                <i data-lucide="activity" class="w-4 h-4"></i>
+              </div>
+              <div class="grid grid-cols-2 gap-2 my-auto">
+                <div
+                  class="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center"
+                >
+                  <span
+                    class="text-[10px] font-bold text-blue-700 block uppercase"
+                    >Perawatan Done</span
+                  >
+                  <span
+                    id="stat-perawatan-done"
+                    class="text-xl font-black text-blue-900"
+                    >0</span
+                  >
+                </div>
+                <div
+                  class="bg-rose-50 border border-rose-200 rounded-lg p-2 text-center"
+                >
+                  <span
+                    class="text-[10px] font-bold text-rose-700 block uppercase"
+                    >Gangguan Open</span
+                  >
+                  <span
+                    id="stat-gangguan-open"
+                    class="text-xl font-black text-rose-900"
+                    >0</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Section -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div
+              class="bg-white rounded-xl shadow-md border border-gray-200 p-4 flex flex-col"
+            >
+              <div class="flex justify-between items-center mb-3 pb-2 border-b">
+                <h3
+                  class="font-bold text-gray-800 text-sm flex items-center gap-2"
+                >
+                  <i
+                    data-lucide="pie-chart"
+                    class="w-4 h-4 text-kai-orange"
+                  ></i>
+                  Tingkat Pendidikan Pegawai
+                </h3>
+                <span class="text-[10px] text-gray-400">Real-time</span>
+              </div>
+              <div
+                class="relative flex-grow flex items-center justify-center min-h-[220px]"
+              >
+                <canvas id="educationChart"></canvas>
+              </div>
+            </div>
+
+            <div
+              class="bg-white rounded-xl shadow-md border border-gray-200 p-4 lg:col-span-2 flex flex-col"
+            >
+              <div class="flex justify-between items-center mb-3 pb-2 border-b">
+                <h3
+                  class="font-bold text-gray-800 text-sm flex items-center gap-2"
+                >
+                  <i
+                    data-lucide="bar-chart-3"
+                    class="w-4 h-4 text-kai-blue"
+                  ></i>
+                  Realisasi Perawatan & Total Gangguan per Resor
+                </h3>
+                <span
+                  class="text-[10px] bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded"
+                  >Tahun 2025/2026</span
+                >
+              </div>
+              <div class="relative flex-grow min-h-[240px]">
+                <canvas id="resorActivityChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gangguan Monitoring Preview -->
+          <div class="bg-white rounded-xl shadow-md border border-gray-200 p-4">
+            <div class="flex justify-between items-center mb-3">
+              <h3
+                class="font-bold text-gray-800 text-sm flex items-center gap-2"
+              >
+                <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i>
+                Monitoring Gangguan Terbaru
+              </h3>
+              <button
+                onclick="switchTab('gangguan')"
+                class="text-xs text-kai-orange hover:underline font-semibold flex items-center gap-1"
+              >
+                Lihat Semua <i data-lucide="arrow-right" class="w-3 h-3"></i>
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-100 text-gray-700 border-b">
+                    <th class="p-2">Tanggal</th>
+                    <th class="p-2">Resor</th>
+                    <th class="p-2">Peralatan</th>
+                    <th class="p-2">Deskripsi Gangguan</th>
+                    <th class="p-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="overviewGangguanTable" class="divide-y"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: DATA PEGAWAI -->
+        <div id="view-pegawai" class="hidden space-y-4">
+          <div class="bg-white rounded-xl shadow-md p-4 border border-gray-200">
+            <div
+              class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 border-b pb-3"
+            >
+              <div>
+                <h2
+                  class="text-lg font-bold text-kai-blue flex items-center gap-2"
+                >
+                  <i data-lucide="users" class="w-5 h-5 text-kai-orange"></i>
+                  Data Pegawai Sintelis
+                </h2>
+                <p class="text-xs text-gray-500">
+                  Kelola informasi personel, sertifikasi, dan unit kerja
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="text"
+                  id="searchPegawai"
+                  oninput="renderPegawaiTable()"
+                  placeholder="Cari Nama / NIP..."
+                  class="text-xs border rounded-lg px-3 py-2 w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-kai-blue"
+                />
+                <button
+                  onclick="openModal('pegawai')"
+                  class="bg-kai-orange hover:bg-orange-600 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1 shadow transition"
+                >
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah
+                  Pegawai
+                </button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr
+                    class="bg-kai-blue text-white uppercase text-[11px] tracking-wider"
+                  >
+                    <th class="p-3 rounded-tl-lg">NIP / NIPP</th>
+                    <th class="p-3">Nama Pegawai</th>
+                    <th class="p-3">Resor UPT</th>
+                    <th class="p-3">Jabatan</th>
+                    <th class="p-3">Pendidikan</th>
+                    <th class="p-3">Smartcard</th>
+                    <th class="p-3">Sertifikasi</th>
+                    <th class="p-3 text-center rounded-tr-lg">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="tablePegawaiBody"
+                  class="divide-y divide-gray-200"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: DATA ASET -->
+        <div id="view-aset" class="hidden space-y-4">
+          <div class="bg-white rounded-xl shadow-md p-4 border border-gray-200">
+            <div
+              class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 border-b pb-3"
+            >
+              <div>
+                <h2
+                  class="text-lg font-bold text-kai-blue flex items-center gap-2"
+                >
+                  <i data-lucide="box" class="w-5 h-5 text-kai-orange"></i>
+                  Inventory Aset & Suku Cadang
+                </h2>
+                <p class="text-xs text-gray-500">
+                  Monitoring stok material, persediaan, dan harga satuan
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="text"
+                  id="searchAset"
+                  oninput="renderAsetTable()"
+                  placeholder="Cari Nama Kode Aset..."
+                  class="text-xs border rounded-lg px-3 py-2 w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-kai-blue"
+                />
+                <button
+                  onclick="openModal('aset')"
+                  class="bg-kai-orange hover:bg-orange-600 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1 shadow transition"
+                >
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah
+                  Material/Aset
+                </button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr
+                    class="bg-kai-blue text-white uppercase text-[11px] tracking-wider"
+                  >
+                    <th class="p-3 rounded-tl-lg">Kode Aset</th>
+                    <th class="p-3">Nama Material / Sparepart</th>
+                    <th class="p-3">Resor</th>
+                    <th class="p-3">Kategori</th>
+                    <th class="p-3">Jumlah Stok</th>
+                    <th class="p-3">Harga Satuan</th>
+                    <th class="p-3">Total Nilai</th>
+                    <th class="p-3 text-center rounded-tr-lg">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="tableAsetBody"
+                  class="divide-y divide-gray-200"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: DATA PERAWATAN -->
+        <div id="view-perawatan" class="hidden space-y-4">
+          <div class="bg-white rounded-xl shadow-md p-4 border border-gray-200">
+            <div
+              class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 border-b pb-3"
+            >
+              <div>
+                <h2
+                  class="text-lg font-bold text-kai-blue flex items-center gap-2"
+                >
+                  <i data-lucide="wrench" class="w-5 h-5 text-kai-orange"></i>
+                  Jadwal & Realisasi Perawatan
+                </h2>
+                <p class="text-xs text-gray-500">
+                  Log pemeliharaan berkala peralatan Sinyal, Telekomunikasi &
+                  Kelistrikan
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="text"
+                  id="searchPerawatan"
+                  oninput="renderPerawatanTable()"
+                  placeholder="Cari Perawatan..."
+                  class="text-xs border rounded-lg px-3 py-2 w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-kai-blue"
+                />
+                <button
+                  onclick="openModal('perawatan')"
+                  class="bg-kai-orange hover:bg-orange-600 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1 shadow transition"
+                >
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah
+                  Jadwal Perawatan
+                </button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr
+                    class="bg-kai-blue text-white uppercase text-[11px] tracking-wider"
+                  >
+                    <th class="p-3 rounded-tl-lg">Tgl Jadwal</th>
+                    <th class="p-3">Resor</th>
+                    <th class="p-3">Peralatan</th>
+                    <th class="p-3">Jenis Maintenance</th>
+                    <th class="p-3">Petugas Pelaksana</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3 text-center rounded-tr-lg">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="tablePerawatanBody"
+                  class="divide-y divide-gray-200"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: DATA GANGGUAN -->
+        <div id="view-gangguan" class="hidden space-y-4">
+          <div class="bg-white rounded-xl shadow-md p-4 border border-gray-200">
+            <div
+              class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 border-b pb-3"
+            >
+              <div>
+                <h2
+                  class="text-lg font-bold text-kai-blue flex items-center gap-2"
+                >
+                  <i
+                    data-lucide="alert-triangle"
+                    class="w-5 h-5 text-rose-600"
+                  ></i>
+                  Laporan Gangguan Peralatan
+                </h2>
+                <p class="text-xs text-gray-500">
+                  Catatan insiden, penanganan, dan durasi perbaikan peralatan
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="text"
+                  id="searchGangguan"
+                  oninput="renderGangguanTable()"
+                  placeholder="Cari Peristiwa / Lokasi..."
+                  class="text-xs border rounded-lg px-3 py-2 w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-kai-blue"
+                />
+                <button
+                  onclick="openModal('gangguan')"
+                  class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1 shadow transition"
+                >
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Laporkan
+                  Gangguan
+                </button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr
+                    class="bg-kai-blue text-white uppercase text-[11px] tracking-wider"
+                  >
+                    <th class="p-3 rounded-tl-lg">Tgl Kejadian</th>
+                    <th class="p-3">Resor UPT</th>
+                    <th class="p-3">Peralatan/Lokasi</th>
+                    <th class="p-3">Gejala / Masalah</th>
+                    <th class="p-3">Tindakan Perbaikan</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3 text-center rounded-tr-lg">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="tableGangguanBody"
+                  class="divide-y divide-gray-200"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 6: REALISASI RKAD -->
+        <div id="view-rkad" class="hidden space-y-4">
+          <div class="bg-white rounded-xl shadow-md p-4 border border-gray-200">
+            <div
+              class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 border-b pb-3"
+            >
+              <div>
+                <h2
+                  class="text-lg font-bold text-kai-blue flex items-center gap-2"
+                >
+                  <i
+                    data-lucide="pie-chart"
+                    class="w-5 h-5 text-kai-orange"
+                  ></i>
+                  Rencana Kerja & Anggaran Dinas (RKAD)
+                </h2>
+                <p class="text-xs text-gray-500">
+                  Anggaran biaya operasional & investasi Sintelis DAOP 2
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="text"
+                  id="searchRKAD"
+                  oninput="renderRKADTable()"
+                  placeholder="Cari Program Kerja..."
+                  class="text-xs border rounded-lg px-3 py-2 w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-kai-blue"
+                />
+                <button
+                  onclick="openModal('rkad')"
+                  class="bg-kai-orange hover:bg-orange-600 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1 shadow transition"
+                >
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah
+                  Program RKAD
+                </button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr
+                    class="bg-kai-blue text-white uppercase text-[11px] tracking-wider"
+                  >
+                    <th class="p-3 rounded-tl-lg">Kode Program</th>
+                    <th class="p-3">Nama Program Kerja</th>
+                    <th class="p-3">Resor / Unit</th>
+                    <th class="p-3">Pagu Anggaran</th>
+                    <th class="p-3">Realisasi (Rp)</th>
+                    <th class="p-3">Capaian (%)</th>
+                    <th class="p-3 text-center rounded-tr-lg">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="tableRKADBody"
+                  class="divide-y divide-gray-200"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Dynamic Modal Form -->
+    <div
+      id="crudModal"
+      class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden p-4 backdrop-blur-sm"
+    >
+      <div
+        class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200"
+      >
+        <div
+          class="bg-kai-blue text-white px-4 py-3 flex justify-between items-center border-b border-blue-900"
+        >
+          <h3 id="modalTitle" class="font-bold text-sm flex items-center gap-2">
+            <i data-lucide="edit-3" class="w-4 h-4 text-kai-orange"></i> Form
+            Data
+          </h3>
+          <button
+            onclick="closeModal()"
+            class="text-gray-300 hover:text-white p-1 rounded-lg hover:bg-blue-800 transition"
+          >
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div
+          class="p-4 overflow-y-auto space-y-3"
+          id="modalFormContainer"
+        ></div>
+
+        <div class="bg-gray-100 px-4 py-3 border-t flex justify-end space-x-2">
+          <button
+            onclick="closeModal()"
+            class="px-3 py-1.5 border rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-200 transition"
+          >
+            Batal
+          </button>
+          <button
+            onclick="saveModalData()"
+            class="px-4 py-1.5 bg-kai-orange hover:bg-orange-600 text-white rounded-lg text-xs font-bold shadow transition flex items-center gap-1"
+          >
+            <i data-lucide="save" class="w-3.5 h-3.5"></i> Simpan Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
